@@ -1,92 +1,50 @@
 <?php
-
 namespace App\Http\Controllers\Weather;
 
 use App\Http\Controllers\Controller;
-use Illuminate\Http\Request;
 use App\Models\WeatherReports;
+use Illuminate\Http\Request;
 
-
-class WeatherReportController extends Controller
+class WeatherReportController extends Controller 
 {
-    public function __construct() 
-    {        
-         $this->middleware('auth');
-    }
-    /**
-     * Display a listing of the resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function index()
-    {
-        $data = WeatherReports::get()->toArray();        
-        return view('dashboard')->with(['data' => $data]);
-    }
+	public function __construct() {
+		$this->middleware('auth');
+	}
+	/**
+	 * Display Weather report from the https://openweathermap.org/api
+	 *
+	 * @return \Illuminate\Http\Response
+	 */
+	public function index() 
+	{
+		$weatherReport = WeatherReports::first();
+		$weatherData   = !empty($weatherReport['data'])?json_decode($weatherReport['data'], true):[];
+		$weatherData   = ($weatherData['cod'] == 200)?$weatherData['list']:[];
+		return view('dashboard')->with(['weatherData' => $weatherData]);
+	}
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
-
-    /**
-     * Store a newly created resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @return \Illuminate\Http\Response
-     */
-    public function store(Request $request)
-    {
-        //
-    }
-
-    /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
-
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function edit($id)
-    {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, $id)
-    {
-        //
-    }
-
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy($id)
-    {
-        //
-    }
+	/**
+	 * The filter by the date time to get weather data
+	 *
+	 * @param  \Illuminate\Http\Request  $request
+	 * @return \Illuminate\Http\Response
+	 */
+	public function filterByTime(Request $request) 
+	{
+		header("Access-Control-Allow-Origin: *");
+		$time        = strtotime($request->time);
+		$data        = WeatherReports::first();
+		$jsonDecode  = json_decode($data['data'], true);
+		$weatherData = ['message'            => $jsonDecode['message'], 'cod'            => $jsonDecode['cod'], 'count'            => $jsonDecode['count']];
+		foreach ($jsonDecode['list'] as $key => $value) {
+			if ($value['dt'] == $time) {
+				$weatherData['list'][] = $value;
+			}
+		}
+		$weatherData = isset($weatherData['list'])?$weatherData['list']:[];
+		$returnHTML  = view('tabledata')
+			->with(['weatherData' => $weatherData])
+			->render();
+		return response()->json($returnHTML);
+	}
 }
