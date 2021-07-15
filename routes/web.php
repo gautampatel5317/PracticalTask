@@ -1,7 +1,7 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-
+use App\Http\Controllers\Weather\WeatherReportController;
 /*
 |--------------------------------------------------------------------------
 | Web Routes
@@ -17,8 +17,14 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/dashboard', function () {
-    return view('dashboard');
-})->middleware(['auth'])->name('dashboard');
+// Route::get('/dashboard', function () {
+//     return view('dashboard');
+// })->middleware(['auth'])->name('dashboard');
 
 require __DIR__.'/auth.php';
+
+Route::group(['namespace' => 'Weather'], function () {    
+    Route::get('/dashboard',[WeatherReportController::class,'index'])->name('dashboard');
+});
+
+
