@@ -7,6 +7,10 @@ use Illuminate\Http\Request;
 
 class WeatherReportController extends Controller 
 {
+    /**
+	 * User request for weather authenticate using auth middlewate 
+	 *
+	 */
 	public function __construct() {
 		$this->middleware('auth');
 	}
